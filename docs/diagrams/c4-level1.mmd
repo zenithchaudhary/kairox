@@ -1,0 +1,26 @@
+flowchart TB
+    User["Retail Investor\n[Person]"]
+    KAIROX["KAIROX\n[Software System]"]
+    News["News Sources\n[External System]"]
+    HF["HuggingFace\n[External System]"]
+    Grok["Grok API\n[External System]"]
+    Firebase["Firebase\n[External System]"]
+
+    News ~~~ HF ~~~ Grok ~~~ Firebase
+
+    User -- "reads news & watchlist" --> KAIROX
+    KAIROX -- "serves summaries" --> User
+    News -- "raw articles via RSS" --> KAIROX
+    KAIROX -- "article text" --> HF
+    KAIROX -- "article text" --> Grok
+    KAIROX -- "notification triggers" --> Firebase
+    Firebase -- "push notifications" --> User
+
+    classDef system fill:#1e3a5f,stroke:#2d5986,color:#ffffff
+    classDef person fill:#08427b,stroke:#0a5299,color:#ffffff
+    classDef external fill:#6b6b6b,stroke:#888888,color:#ffffff
+
+    class KAIROX system
+    class User person
+    class News,HF,Grok,Firebase external
+    
