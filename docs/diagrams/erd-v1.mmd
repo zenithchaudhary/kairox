@@ -1,0 +1,233 @@
+erDiagram
+
+    sources {
+        uuid id PK
+        string name
+        string url
+        string category
+        boolean active
+        timestamp created_at
+    }
+
+    articles {
+        uuid id PK
+        uuid source_id FK
+        string headline
+        text body
+        string url
+        string source_article_id
+        timestamp published_at
+        text grok_summary
+        text suggested_angle
+        text editorial_angle
+        int relevance_score
+        string editorial_status
+        date publish_date
+        timestamp created_at
+    }
+
+    article_embeddings {
+        uuid id PK
+        uuid article_id FK
+        vector embedding
+        string model
+        timestamp created_at
+    }
+
+    article_duplicates {
+        uuid id PK
+        uuid article_id FK
+        uuid original_id FK
+        decimal similarity_score
+        timestamp created_at
+    }
+
+    instruments {
+        uuid id PK
+        string ticker
+        string name
+        string asset_class
+        string exchange
+        timestamp created_at
+    }
+
+    article_instruments {
+        uuid id PK
+        uuid article_id FK
+        uuid instrument_id FK
+    }
+
+    company_aliases {
+        uuid id PK
+        uuid instrument_id FK
+        string alias
+    }
+
+    instrument_relationships {
+        uuid id PK
+        uuid instrument_id FK
+        uuid related_instrument_id FK
+        string relationship_type
+        decimal strength
+    }
+
+    related_articles {
+        uuid id PK
+        uuid article_id FK
+        uuid related_article_id FK
+        decimal similarity_score
+        timestamp created_at
+    }
+
+    tags {
+        uuid id PK
+        string name
+        string category
+    }
+
+    article_tags {
+        uuid id PK
+        uuid article_id FK
+        uuid tag_id FK
+    }
+
+    instrument_tags {
+        uuid id PK
+        uuid instrument_id FK
+        uuid tag_id FK
+    }
+
+    article_reads {
+        uuid id PK
+        uuid user_id FK
+        uuid article_id FK
+        timestamp read_at
+    }
+
+    filers {
+        uuid id PK
+        string name
+        string role
+        string party
+        string country
+        timestamp created_at
+    }
+
+    signals {
+        uuid id PK
+        uuid filer_id FK
+        string signal_type
+        string transaction_type
+        decimal quantity
+        decimal value_usd
+        date transaction_date
+        string source_url
+        timestamp created_at
+    }
+
+    signal_instruments {
+        uuid id PK
+        uuid signal_id FK
+        uuid instrument_id FK
+    }
+
+    users {
+        uuid id PK
+        string firebase_uid
+        string email
+        string name
+        boolean notifications_enabled
+        timestamp created_at
+        timestamp last_login_at
+    }
+
+    user_devices {
+        uuid id PK
+        uuid user_id FK
+        string firebase_token
+        string platform
+        timestamp created_at
+        timestamp last_seen_at
+    }
+
+    watchlists {
+        uuid id PK
+        uuid user_id FK
+        uuid instrument_id FK
+        timestamp created_at
+    }
+
+    watchlist_events {
+        uuid id PK
+        uuid user_id FK
+        uuid instrument_id FK
+        string event_type
+        timestamp created_at
+    }
+
+    waitlist {
+        uuid id PK
+        string email
+        timestamp joined_at
+        timestamp invited_at
+        string status
+    }
+
+    notifications {
+        uuid id PK
+        uuid user_id FK
+        uuid instrument_id FK
+        uuid article_id FK
+        uuid signal_id FK
+        timestamp sent_at
+        timestamp opened_at
+        string status
+    }
+
+    editorial_sessions {
+        uuid id PK
+        date date
+        int articles_reviewed
+        int articles_published
+        decimal avg_relevance_score
+        timestamp created_at
+    }
+
+    ingestion_runs {
+        uuid id PK
+        uuid source_id FK
+        timestamp started_at
+        timestamp completed_at
+        int articles_found
+        int articles_new
+        string status
+        text error_message
+    }
+
+    sources ||--o{ articles : "produces"
+    sources ||--o{ ingestion_runs : "tracked by"
+    articles ||--o{ article_embeddings : "has"
+    articles ||--o{ article_duplicates : "duplicated as"
+    articles ||--o{ article_instruments : "mentions"
+    articles ||--o{ article_tags : "tagged with"
+    articles ||--o{ related_articles : "related to"
+    articles ||--o{ article_reads : "read in"
+    articles ||--o{ notifications : "triggers"
+    instruments ||--o{ article_instruments : "mentioned in"
+    instruments ||--o{ company_aliases : "known as"
+    instruments ||--o{ instrument_relationships : "related to"
+    instruments ||--o{ instrument_tags : "tagged with"
+    instruments ||--o{ watchlists : "tracked by"
+    instruments ||--o{ watchlist_events : "acted on"
+    instruments ||--o{ signal_instruments : "referenced in"
+    instruments ||--o{ notifications : "triggers"
+    tags ||--o{ article_tags : "applied to"
+    tags ||--o{ instrument_tags : "applied to"
+    filers ||--o{ signals : "files"
+    signals ||--o{ signal_instruments : "relates to"
+    signals ||--o{ notifications : "triggers"
+    users ||--o{ user_devices : "uses"
+    users ||--o{ watchlists : "owns"
+    users ||--o{ watchlist_events : "performs"
+    users ||--o{ article_reads : "reads"
+    users ||--o{ notifications : "receives"
