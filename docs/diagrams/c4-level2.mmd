@@ -1,0 +1,39 @@
+flowchart TB
+    Investor["Retail Investor\n[Person]"]
+
+    subgraph KAIROX["KAIROX — Software System"]
+        direction TB
+        Mobile["Mobile App\n[React Native]"]
+        Dashboard["Editorial Dashboard\n[Internal Web UI]"]
+        API["FastAPI Service\n[Python]"]
+        Worker["Ingestion Worker\n[Python]"]
+        DB["PostgreSQL + pgvector\n[Database]"]
+
+        Mobile -- "REST/JSON" --> API
+        Dashboard -- "REST/JSON" --> API
+        API -- "SQL queries" --> DB
+        Worker -- "inserts articles" --> DB
+        API -- "triggers" --> Worker
+    end
+
+    News["News Sources\n[External]"]
+    HF["HuggingFace\n[External]"]
+    Grok["Grok API\n[External]"]
+    Firebase["Firebase\n[External]"]
+
+    Investor -- "reads feed" --> Mobile
+    Worker -- "fetches" --> News
+    Worker -- "article text" --> HF
+    API -- "article text" --> Grok
+    API -- "triggers" --> Firebase
+    Firebase -- "push notification" --> Investor
+
+    classDef container fill:#1e3a5f,stroke:#2d5986,color:#ffffff
+    classDef person fill:#08427b,stroke:#0a5299,color:#ffffff
+    classDef external fill:#6b6b6b,stroke:#888888,color:#ffffff
+    classDef system fill:none,stroke:#2d5986,stroke-width:2px,color:#ffffff
+
+    class Mobile,Dashboard,API,Worker,DB container
+    class Investor person
+    class News,HF,Grok,Firebase external
+    class KAIROX system
