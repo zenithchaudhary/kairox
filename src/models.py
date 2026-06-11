@@ -17,10 +17,11 @@ class Source(Base):
     name = mapped_column(String, nullable=False)
     url = mapped_column(String, nullable=False)
     category = mapped_column(String, nullable=False)
+    tier = mapped_column(Integer, nullable=False)
+    source_type = mapped_column(String, nullable=False)
     active = mapped_column(Boolean, default=True)
     created_at = mapped_column(DateTime, default=func.now())
 
-    # Relationship — one source has many articles
     articles = relationship("Article", back_populates="source")
     ingestion_runs = relationship("IngestionRun", back_populates="source")
 
@@ -43,7 +44,6 @@ class Article(Base):
     publish_date = mapped_column(Date)
     created_at = mapped_column(DateTime, default=func.now())
 
-    # Relationships
     source = relationship("Source", back_populates="articles")
     article_instruments = relationship("ArticleInstrument", back_populates="article")
 
@@ -58,7 +58,6 @@ class Instrument(Base):
     exchange = mapped_column(String, nullable=False)
     created_at = mapped_column(DateTime, default=func.now())
 
-    # Relationships
     article_instruments = relationship("ArticleInstrument", back_populates="instrument")
     watchlists = relationship("Watchlist", back_populates="instrument")
 
@@ -70,7 +69,6 @@ class ArticleInstrument(Base):
     article_id = mapped_column(UUID(as_uuid=True), ForeignKey("articles.id"))
     instrument_id = mapped_column(UUID(as_uuid=True), ForeignKey("instruments.id"))
 
-    # Relationships
     article = relationship("Article", back_populates="article_instruments")
     instrument = relationship("Instrument", back_populates="article_instruments")
 
@@ -86,7 +84,6 @@ class User(Base):
     created_at = mapped_column(DateTime, default=func.now())
     last_login_at = mapped_column(DateTime)
 
-    # Relationships
     watchlists = relationship("Watchlist", back_populates="user")
 
 
@@ -98,7 +95,6 @@ class Watchlist(Base):
     instrument_id = mapped_column(UUID(as_uuid=True), ForeignKey("instruments.id"))
     created_at = mapped_column(DateTime, default=func.now())
 
-    # Relationships
     user = relationship("User", back_populates="watchlists")
     instrument = relationship("Instrument", back_populates="watchlists")
 
@@ -115,5 +111,4 @@ class IngestionRun(Base):
     status = mapped_column(String, default="running")
     error_message = mapped_column(Text)
 
-    # Relationship
     source = relationship("Source", back_populates="ingestion_runs")
