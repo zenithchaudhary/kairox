@@ -42,12 +42,17 @@ class Article(Base):
     editorial_angle = mapped_column(Text)
     relevance_score = mapped_column(Integer)
     editorial_status = mapped_column(String, default="draft")
+    # Self-referencing FK. NULL = this article is canonical (original).
+    # Set = this article is a near-duplicate of the article it points to.
+    duplicate_of_id = mapped_column(UUID(as_uuid=True), ForeignKey("articles.id"), nullable=True)
     publish_date = mapped_column(Date)
     created_at = mapped_column(DateTime, default=func.now())
 
     source = relationship("Source", back_populates="articles")
     article_instruments = relationship("ArticleInstrument", back_populates="article")
     embedding = relationship("Embedding", back_populates="article", uselist=False)
+    # Self-referencing relationship: the canonical article this one duplicates
+    duplicate_of = relationship("Article", remote_side=[id])
 
 
 class Instrument(Base):

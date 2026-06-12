@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from src.models import Source, Article, IngestionRun, Embedding
 from src.ingestion.rss_fetcher import fetch_feed
 from src.ingestion.embeddings import generate_embedding
+from src.ingestion.deduplication import find_duplicate
 
 
 def run_ingestion(db: Session) -> None:
@@ -35,17 +36,24 @@ def _ingest_source(db: Session, source: Source) -> None:
             if exists:
                 continue
 
+            vector = generate_embedding(article_data["title"], article_data["summary"] or "")
+
+            # Check if this is a near-duplicate of a recently seen story
+            # before we insert it. The duplicate (if any) becomes the
+            # canonical article this one points to.
+            duplicate = find_duplicate(db, vector, article_data["published_at"])
+
             article = Article(
                 source_id=source.id,
                 headline=article_data["title"],
                 url=article_data["url"],
                 body=article_data["summary"],
                 published_at=article_data["published_at"],
+                duplicate_of_id=duplicate.id if duplicate else None,
             )
             db.add(article)
             db.flush()
 
-            vector = generate_embedding(article.headline, article.body or "")
             embedding = Embedding(
                 article_id=article.id,
                 embedding=vector,
