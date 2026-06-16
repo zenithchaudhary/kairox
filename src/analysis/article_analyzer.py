@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 from src.analysis.grok_client import get_client, GROK_MODEL
+from src.analysis.retry import with_retry
 
 
 class ArticleAnalysis(BaseModel):
@@ -80,11 +81,13 @@ def condense_for_analysis(full_text: str, source_name: str) -> str:
     return f"Source: {source_name}\n\n{condensed}"
 
 
+@with_retry
 def analyze_article(headline: str, body: str) -> ArticleAnalysis:
     """
     Sends an article to Grok and returns a structured analysis.
-    Raises if the API call fails — caller is responsible for handling
-    that (see Block 23, retry logic).
+    Wrapped in with_retry, transient failures (rate limits, timeouts,
+    server errors) get retried with backoff. Non-retryable failures
+    (like billing/auth errors) raise immediately, see retry.py.
     """
     client = get_client()
 
