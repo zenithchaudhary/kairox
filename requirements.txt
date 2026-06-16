@@ -7,3 +7,4 @@ python-dotenv==1.1.0
 feedparser==6.0.12
 pgvector==0.4.2
 sentence-transformers==5.5.1
+openai==2.41.1
