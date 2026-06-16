@@ -34,6 +34,10 @@ class Article(Base):
     source_id = mapped_column(UUID(as_uuid=True), ForeignKey("sources.id"))
     headline = mapped_column(String, nullable=False)
     body = mapped_column(Text)
+    # Full scraped article text. Nullable because scraping can fail
+    # (paywalls, JS-rendered pages, dead links). Falls back to body
+    # (the RSS snippet) when this is empty.
+    full_text = mapped_column(Text, nullable=True)
     url = mapped_column(String)
     source_article_id = mapped_column(String)
     published_at = mapped_column(DateTime)
