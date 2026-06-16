@@ -8,7 +8,9 @@ def run_analysis(db: Session) -> None:
     """
     Finds canonical articles (not duplicates) that haven't been
     analyzed yet, and runs scrape -> condense -> analyze -> save
-    for each one.
+    for each one. Safe to interrupt and rerun: each article commits
+    individually, and already-analyzed articles are skipped on the
+    next run via the grok_summary IS NULL filter.
     """
     articles = (
         db.query(Article)
@@ -17,23 +19,22 @@ def run_analysis(db: Session) -> None:
         .all()
     )
 
-    print(f"Found {len(articles)} articles to analyze")
+    total = len(articles)
+    print(f"Found {total} articles to analyze")
 
     analyzed = 0
     failed = 0
 
-    for article in articles:
+    for i, article in enumerate(articles, start=1):
+        print(f"[{i}/{total}] {article.headline[:60]}")
         try:
             _analyze_one(db, article)
             analyzed += 1
         except Exception as e:
-            # One bad article (scraping edge case, API error, etc.)
-            # should not stop the rest of the batch. Block 23 adds
-            # real retry logic, for now we skip and move on.
-            print(f"Failed to analyze {article.id}: {e}")
+            print(f"  Failed: {e}")
             failed += 1
 
-    print(f"Analyzed {analyzed}, failed {failed}")
+    print(f"\nAnalyzed {analyzed}, failed {failed}")
 
 
 def _analyze_one(db: Session, article: Article) -> None:
