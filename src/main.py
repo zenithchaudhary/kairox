@@ -4,6 +4,7 @@ from typing import List
 from src.database import get_db
 from src.models import Source, Article
 from src.schemas import SourceCreate, SourceResponse, ArticleCreate, ArticleResponse
+from src.routers import auth, watchlist
 import uuid
 
 app = FastAPI(
@@ -12,6 +13,9 @@ app = FastAPI(
     version="0.1.0"
 )
 
+# Register routers
+app.include_router(auth.router)
+app.include_router(watchlist.router)
 
 @app.get("/")
 def root():
@@ -21,20 +25,16 @@ def root():
         "status": "online"
     }
 
-
 @app.get("/health")
 def health():
     return {"status": "healthy"}
 
-
 # ── Source routes ────────────────────────────────────────────
-
 @app.get("/sources", response_model=List[SourceResponse])
 def get_sources(db: Session = Depends(get_db)):
     """Return all RSS sources."""
     sources = db.query(Source).all()
     return sources
-
 
 @app.post("/sources", response_model=SourceResponse, status_code=201)
 def create_source(source: SourceCreate, db: Session = Depends(get_db)):
@@ -50,9 +50,7 @@ def create_source(source: SourceCreate, db: Session = Depends(get_db)):
     db.refresh(db_source)
     return db_source
 
-
 # ── Article routes ───────────────────────────────────────────
-
 @app.get("/articles", response_model=List[ArticleResponse])
 def get_articles(db: Session = Depends(get_db)):
     """Return all published articles."""
@@ -60,7 +58,6 @@ def get_articles(db: Session = Depends(get_db)):
         Article.editorial_status == "published"
     ).all()
     return articles
-
 
 @app.post("/articles", response_model=ArticleResponse, status_code=201)
 def create_article(article: ArticleCreate, db: Session = Depends(get_db)):
